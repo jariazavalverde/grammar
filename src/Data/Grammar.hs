@@ -9,9 +9,9 @@ module Data.Grammar(
 ) where
 
 
-import Data.Symbol(Symbol(..))
-import Data.Production(Production(..), isDirectlyLeftRecursive)
-import Data.List(nub, intersperse, isInfixOf, partition)
+import Data.Symbol(Symbol(..), isTerminalSymbol, isNonTerminalSymbol)
+import Data.Production(Production(..), readProductions, isDirectlyLeftRecursive)
+import Data.List(nub, sort, intersperse, isInfixOf, partition)
 
 
 data Grammar = Grammar {
@@ -24,6 +24,15 @@ data Grammar = Grammar {
 
 instance Show Grammar where
     show x = concat $ intersperse "\n" (map show (getProductions x))
+
+
+instance Read Grammar where
+    readsPrec _ input = let (p, rest) = readProductions input
+                            symbols = concat (map getLeftSymbols p) ++ concat (map getRightSymbols p)
+                            n = sort $ nub $ filter isNonTerminalSymbol symbols
+                            e = sort $ nub $ filter isNonTerminalSymbol symbols
+                            i = head $ filter isNonTerminalSymbol symbols
+                        in if null p then [] else [(Grammar n e p i, rest)]
 
 
 instance Eq Grammar where
