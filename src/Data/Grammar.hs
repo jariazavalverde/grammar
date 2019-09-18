@@ -30,7 +30,7 @@ instance Read Grammar where
     readsPrec _ input = let (p, rest) = readProductions input
                             symbols = concat (map getLeftSymbols p) ++ concat (map getRightSymbols p)
                             n = sort $ nub $ filter isNonTerminalSymbol symbols
-                            e = sort $ nub $ filter isNonTerminalSymbol symbols
+                            e = sort $ nub $ filter isTerminalSymbol symbols
                             i = head $ filter isNonTerminalSymbol symbols
                         in if null p then [] else [(Grammar n e p i, rest)]
 
