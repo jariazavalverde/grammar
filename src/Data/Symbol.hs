@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 module Data.Symbol (
     Symbol(..),
     showSymbols,
@@ -9,6 +10,10 @@ module Data.Symbol (
 
 import Data.List(intersperse)
 import Text.Read(readMaybe)
+import Language.Haskell.TH(conE, appE)
+import Language.Haskell.TH.Syntax(Lift(..))
+import Language.Haskell.TH.Quote(QuasiQuoter(..))
+
 
 data Symbol = Empty | Terminal String | NonTerminal String deriving (Eq, Ord)
 
@@ -24,6 +29,12 @@ instance Read Symbol where
     readsPrec _ ('"':input) = let (symbol, rest) = span (/= '"') input in [(Terminal symbol, tail rest)]
     readsPrec _ ('<':input) = let (symbol, rest) = span (/= '>') input in [(NonTerminal symbol, tail rest)]
     readsPrec _ _ = []
+
+
+instance Lift Symbol where
+    lift Empty = conE 'Empty
+    lift (Terminal x) = appE (conE 'Terminal) (lift x)
+    lift (NonTerminal x) = appE (conE 'NonTerminal) (lift x)
 
 
 -- | Conversion of symbols to readable Strings.

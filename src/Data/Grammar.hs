@@ -1,5 +1,9 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
+
 module Data.Grammar(
     Grammar(..),
+    grammar,
     isContextFreeGrammar,
     isRegularGrammar,
     getProductionsByLeftSymbols,
@@ -12,6 +16,9 @@ module Data.Grammar(
 import Data.Symbol(Symbol(..), isTerminalSymbol, isNonTerminalSymbol)
 import Data.Production(Production(..), readProductions, isDirectlyLeftRecursive)
 import Data.List(nub, sort, intersperse, isInfixOf, partition)
+import Language.Haskell.TH(conE, appE)
+import Language.Haskell.TH.Syntax(Lift(..))
+import Language.Haskell.TH.Quote(QuasiQuoter(..))
 
 
 data Grammar = Grammar {
@@ -38,6 +45,21 @@ instance Read Grammar where
 instance Eq Grammar where
     x == y = isInfixOf (getProductions x) (getProductions y)
 
+
+instance Lift Grammar where
+    lift (Grammar n e p i) =
+        appE (appE (appE (appE (conE 'Grammar) (lift n)) (lift e)) (lift p)) (lift i)  
+
+
+-- | Quasiquoter for grammars.
+grammar :: QuasiQuoter
+grammar = QuasiQuoter {
+    quoteExp  = lift.(read :: String -> Grammar),
+    quotePat  = notHandled "patterns",
+    quoteType = notHandled "types",
+    quoteDec  = notHandled "declarations"
+  }
+  where notHandled things = error $ things ++ " are not handled by the grammar quasiquoter."
 
 -- | Test whether the grammar is cotext-free.
 isContextFreeGrammar :: Grammar -> Bool

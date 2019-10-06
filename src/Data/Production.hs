@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 module Data.Production (
     Production(..),
     readProductions,
@@ -6,6 +7,8 @@ module Data.Production (
 
 
 import Data.Symbol(Symbol(..), showSymbols, readSymbols)
+import Language.Haskell.TH(conE, appE)
+import Language.Haskell.TH.Syntax(Lift(..))
 
 
 data Production = Production {
@@ -30,6 +33,10 @@ instance Read Production where
                             if head rest' == '→' && checkRight right then [(Production left (transformRight right), rest'')]
                             else if take 2 rest' == "->" && checkRight right' then [(Production left (transformRight right'), rest''')]
                         else []
+
+
+instance Lift Production where
+    lift (Production ls rs) = appE (appE (conE 'Production) (lift ls)) (lift rs)                      
 
 
 -- | Conversion of productions from readable String.

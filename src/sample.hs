@@ -1,7 +1,10 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 import Data.Symbol
 import Data.Production
 import Data.Grammar
 import Data.ShortGrammar
+import Language.Haskell.TH.Syntax(Lift(..))
 
 
 -- | Example 1: regular grammar
@@ -41,3 +44,13 @@ g2 = Grammar
         Production [NonTerminal "C"] []
     ]
     (NonTerminal "A")
+
+
+-- | Example 3: example 1 with TH
+g3 :: Grammar
+g3 = [grammar|
+    <A> → "a" <A>
+    <A> → "b" <B>
+    <B> → "b" <B>
+    <B> → ɛ
+|]
